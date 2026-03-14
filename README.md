@@ -59,13 +59,17 @@ AI-powered web app for resume screening, job description matching, interview que
 - **CSV export**:
   - `/api/save-candidate` appends candidate data to `assets/candidate_data.csv` using `json2csv`.
 
-### Deployment (Vercel)
+### Deploy on Vercel
 
-1. Push the project to GitHub.
-2. In Vercel, import the repository and select the `ai-interview-assistant` root.
-3. Under Project Settings → Environment Variables, add:
+1. Go to [vercel.com](https://vercel.com) and sign in (GitHub).
+2. Click **Add New…** → **Project**.
+3. Import your repo: **AI-Recruitment-Agent-master** (or paste `https://github.com/Aarinmahala/AI-Recruitment-Agent-master`).
+4. Leave **Root Directory** as `.` (repo root).
+5. In **Environment Variables**, add:
+   - **Name:** `GEMINI_API_KEY`  
+   - **Value:** your Gemini API key (same as in `.env.local`).
+6. Click **Deploy**. Wait for the build to finish.
+7. Your app will be at `https://your-project.vercel.app`.
 
-   - `GEMINI_API_KEY` = your Gemini API key.
-
-4. Deploy. All backend logic runs on Vercel serverless functions via Next.js API routes.
+**Note:** The “Save candidate to CSV” feature writes to the server filesystem. On Vercel that path is read-only, so saving to file will not persist; the rest of the app (upload, analysis, interview, feedback) works normally.
 

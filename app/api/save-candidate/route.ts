@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
+import os from "os";
 
 export const runtime = "nodejs";
 
@@ -17,7 +18,10 @@ export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as SavePayload;
 
-    const assetsDir = path.join(process.cwd(), "assets");
+    // On Vercel, filesystem is read-only except /tmp
+    const isVercel = process.env.VERCEL === "1";
+    const baseDir = isVercel ? os.tmpdir() : process.cwd();
+    const assetsDir = path.join(baseDir, "assets");
     const csvPath = path.join(assetsDir, "candidate_data.csv");
 
     await fs.mkdir(assetsDir, { recursive: true });
