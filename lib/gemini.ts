@@ -1,20 +1,39 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const MODEL_NAME = "gemini-1.5-flash";
+const MODEL_CANDIDATES = [
+  "gemini-flash-latest",
+  "gemini-2.0-flash",
+  "gemini-2.0-flash-001",
+  "gemini-2.5-flash"
+];
 
-function getModel() {
+function getClient() {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY is not set");
   }
-  const genAI = new GoogleGenerativeAI(apiKey);
-  return genAI.getGenerativeModel({ model: MODEL_NAME });
+  return new GoogleGenerativeAI(apiKey);
+}
+
+async function generateWithFallback(prompt: string) {
+  const client = getClient();
+  let lastError: unknown;
+
+  for (const modelName of MODEL_CANDIDATES) {
+    try {
+      const model = client.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent(prompt);
+      return result.response.text();
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError ?? new Error("No Gemini model succeeded");
 }
 
 export async function generateJsonResponse<T = unknown>(prompt: string) {
-  const model = getModel();
-  const result = await model.generateContent(prompt);
-  const text = result.response.text();
+  const text = await generateWithFallback(prompt);
 
   try {
     const start = text.indexOf("{");
@@ -29,8 +48,6 @@ export async function generateJsonResponse<T = unknown>(prompt: string) {
 }
 
 export async function generateTextResponse(prompt: string) {
-  const model = getModel();
-  const result = await model.generateContent(prompt);
-  return result.response.text();
+  return generateWithFallback(prompt);
 }
 
